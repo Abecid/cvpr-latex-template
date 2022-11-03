@@ -1,3 +1,14 @@
 \section{Related Work}
 \label{sec:related}
+### 2.1. Appearance based gaze estimation
+Appearance based gaze estimation has recently gained great attention as it does not require dedicated devices[6]. Appearance based methods directly map images to the gaze vector and performs better than model methods which rely eye-geometry[12,24]. 
 
+### 2.2. Domain adaptation
+Several datasets are frequently used for training gaze estimation models, including ETH-XGaze[8], Gaze Capture[5], and MPII[7]. However as each of these datasets have different distributions in lighting, illumination, and pose, several methods have been previously proposed to increase domain generalization and thus improve corss-dataset performance. 
+
+Many works have employed adversarial training for better domain generalization. And others have used data augmentation techniques, and better feature alignment techniques. 
+
+### 2.3. Contrastive learning
+Contrastive learning is a form of unsupervised learning where the goal is to increase the distance between the anchor sample and negative samples and decrease the distance between the anchor sample and positive samples. 
+
+The most notable version of contrastive loss is NT-Xent, highlighted by Chen et al.[9]. Previously contrastive loss has been used in the context of classification tasks and is thus not best suited for regression tasks[10]. Wang et al.[10] proposed a contrastive loss by using the distribution of the labels as the weights with KL-divergence. Jindal et al.[20] recently proposed a GazeCRL, a contrastive learning framework for gaze estimation. 

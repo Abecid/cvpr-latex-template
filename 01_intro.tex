@@ -1,2 +1,20 @@
 \section{Introduction}
 \label{sec:intro}
+Gaze estimation is a crucial technology that has many critical applications in various domains including human-computer interaction[2], virtual reality[3] and medical analysis[4]. Appearance based gaze estimation leveraging deep learning and convolutional neural networks have gained great traction over the past several years[12,13,14]. There have been especially notable progress in appearance based gaze estimation via supervised learning and domain adaptation for cross-dataset performance accounting for different lighting, illuminations, and head poses. However, near-infrared gaze estimation has not gained much traction in the literature. But with broader usage of gaze estimation in edge devices, there is increasing need for gaze estimation in the dark. And infrared images are much more reliable in these settings. 
+
+Even though domain generalization using more datasets have made improvements in performance, gaze annotations are difficult to obtain. Thus it is very challenging to create large datasets that are representative of real world distributions[16]. 
+
+Self-supervised learning (SSL) has been a successful alternative that hsa gained great traction recently, reducing the reliance on labeled samples[17,18,19]. 
+
+Also training with a diverse group of large datasets alone could be insufficient since each dataset has different distribution in illuminations and poses, but does not represent many of the real world scenarios that can be encountered with edge devices[21].
+
+Contrastive learning has been used in many SSL training frameworks, however, the general contrastive loss is most suited for classification tasks[10]. With regression, the slightest changes in the latent vector representation of features could hinder the performance drastically. Thus using the similarity between labels can be exploited as a proxy for the distance between samples in the feature space. 
+
+To the best of our knowledge, we are the first to improve gaze estimation with near-infrared images using appearance based deep learning and contrastive learning. 
+
+We propose the following:
+1. GazeCWL, a novel framework for gaze estimation with near-infrared images. GazeCWL works as a teacher-student model and leverages two novel techniques along with the AI Hub dataset[15] for knowledge distillation. 
+2. Data augmentation methods for gaze estimation in near-infrared images. Using both adversarial attack and data augmentation suited for near-infrared images for more effective adaptation. 
+2. Propose CRWL, a novel contrastive loss function for better clustering of features in the latent space. 
+
+Our model achieves significant performance improvements compared to existing domain generalization methods. 

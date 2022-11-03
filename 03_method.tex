@@ -1,3 +1,104 @@
 \section{Method}
 \label{sec:method}
+Our objective is to improve the performance of gaze estimation with near-infrared images. Since gaze is a very subtle feature from external appearance, we employ data augmentation and contrastive learning to better cluster features in the latent space yields better performance. 
 
+$$ \min_{f}E_{x^{\tau},y^{\tau}}[L(f(x^{\tau}),g^{\tau})] $$
+
+### 3.1. Overview
+We use the backbone of our gaze estimation model following ITracker[5] With pretrained weights trained on datasets including MPII and XGaze. Itracker takes three normalized images as inputs: left eye, right eye, face. The output of the model is the 2-dimensional camera plane. 
+
+Preliminary data augmentation is done on both near-infrared and RGB images. g() denotes transformations to grayscale and i() denotes adversarial attack elaborated in Sec 3.2.
+$$ x = i(g(x^{rgb})), i(x^{ir}) $$
+
+The contrastive loss weighted with gaze label as the label contains information regarding the relationship between the features of samples. This is amalgamated with supervised learning using the outputs of the teacher model as the pseudo label for the student model. 
+
+Backpropagation is done to train the feature extractor with the CRWL. THen thethe predictor is trained in comparison to the pseudo label. 
+
+The results are optimized for validation with l2 distance on the 2-dimensional camera plane. Again, using the outputs of the teacher model as the pseudo label.    
+$$ \lvert\lvert \hat{y}_{t} - \hat{y}_{s} \rvert\rvert $$
+
+### 3.2. Adversarial Attack
+We then apply two types of data augmentation. One on the source model by converting the RGB image into grayscale by only taking the red intensity. And then applying the following adversarial attack on the target domain on both the source domain and paired target domain images. 
+
+FGSM One step scheme[22]  
+$$ x^{\prime} = x + \epsilon \cdot sign(\triangledown_{x}L(f(x),y)) $$
+
+projected gradient descent (PGD)[23]  
+$$ x^{t+1} = \Pi_{x+S}(x^{t} + \epsilon \cdot sign(\triangledown_{x}L(f(x),y))) $$ 
+
+We use High-Frequency Component[21], which utilizes both adversarial techniques.  
+$$ x^{\prime s,t}_{i} = FGSM(x^{s,t}_{i},y^{s,t}_{i},L_{gaze}) || PGD(x^{s,t}_{i},y^{s,t}_{i},L_{gaze})$$
+
+$$
+x^{\prime s,t}_{i} = 
+    \left\{\begin{matrix}
+        FGSM(x^{s,t}_{i},y^{s,t}_{i},L_{gaze}), 0.5\\
+        PGD(x^{s,t}_{i},y^{s,t}_{i},L_{gaze}), 0.5
+    \end{matrix}\right.
+$$
+### 3.3. Contrastive regression loss for gaze estimation
+Contrastive loss has proved to be a powerful method for unsupervised learning in classification tasks. 
+We propose CRWL, a novel contrastive regression loss function for gaze estimation. 
+Contrary to classification tasks, distancing method has to be scaled relative to the sample's proximity to the anchor sample inferred by the labels[10]. Also it should be scaled accordingly since the similarities between samples are relatively similar between gaze samples.   
+
+Here is the proposed contrastive loss for regression tasks.  
+$$ -\log\frac{\sum_{j} exp(sim(z_{i}, z_{j})/\tau)}{\sum_{k}\mathbb{1}_{k \ne i}\lvert S_{i, k} \rvert \cdot exp(sim(z_{i}, z_{k})/\tau)} $$
+
+Contrast to the NT-Xent, we scale the negative samples by the similarity between the two labels since subtle distances in features is crucial in regression tasks. 
+
+Cosine similarity  
+$$ sim(x,y) = \frac{x \cdot y}{\lvert\lvert x \rvert\rvert \lvert\lvert y \rvert\rvert} $$
+
+The similarity function for weighing the negative samples is as follows:  
+$$ S = -log \frac{sim(g_{i}, g_{k})}{cos(\pi/60)} $$  
+The additional division has been added to account for the kappa angle - the difference between visual and pupillary axis.
+
+### 3.4. GazeCWL
+[//]: Psuedocode
+$$ \documentclass{article}
+\usepackage{algpseudocode}
+\begin{document}
+Algorithm Contrastive Regression Loss: CRL\hline
+Input: Data, pretrained network, feature extractor, projection head
+Output: Trained Network
+\begin{algorithmic}
+\While not converged do
+  Get batch data
+  Conduct augmentation
+  Feed into Model
+  Calculate CRWL
+  Calculate L2
+  Backpropagate 
+
+\State $i \gets 10$
+\If{$i\geq 5$} 
+    \State $i \gets i-1$
+\Else
+    \If{$i\leq 3$}
+        \State $i \gets i+2$
+    \EndIf
+\EndIf 
+\end{algorithmic}
+
+\end{document} $$  
+
+Supervised learning loss, Huber loss  
+$$
+L_{\delta} = 
+\frac{1}{2}(y - \hat{y})^{2} if \left | (y - \hat{y})  \right | < \delta
+||
+\delta ((y - \hat{y}) - \frac1 2 \delta) otherwise
+$$
+
+$$
+L_{\delta} = 
+    \left\{\begin{matrix}
+        \frac{1}{2}(y - \hat{y})^{2} & if \left | (y - \hat{y})  \right | < \delta\\
+        \delta ((y - \hat{y}) - \frac1 2 \delta) & otherwise
+    \end{matrix}\right.
+$$
+
+The final loss is follows:  
+$$ \gamma L_{\delta} $$  
+
+l2 loss between prediction and output. Use teacher output as the pseudo label. 
